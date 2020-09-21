@@ -1,19 +1,14 @@
-import React from "react";
+import React, { Component } from "react";
 import Navigation from "./component/nav/Navigation";
 import ImageLinkForm from "./component/ImageLinkForm /ImageLinkForm ";
 import Rank from "./component/rank/Rank";
 import Register from "./component/register/Register";
 import FaceRecognition from "./component/FaceRecognition/FaceRecognition";
-import SingIn from "./component/Singin/SingIn";
 import Particles from "react-particles-js";
-import Clarifai from "clarifai";
 import "./App.css";
+import Signin from "./component/Singin/SingIn";
 
-const app = new Clarifai.App({
-  apiKey: "1c70a452f33641e5bd3b112715e1c619",
-});
-
-const particle = {
+const particlesOptions = {
   particles: {
     number: {
       value: 130,
@@ -40,7 +35,7 @@ const initialState = {
   },
 };
 
-class App extends React.Component {
+class App extends Component {
   constructor() {
     super();
     this.state = initialState;
@@ -56,10 +51,6 @@ class App extends React.Component {
         joined: data.joined,
       },
     });
-  };
-
-  onInputChange = (event) => {
-    this.setState({ input: event.target.value });
   };
 
   calculateFaceLocation = (data) => {
@@ -80,13 +71,23 @@ class App extends React.Component {
     this.setState({ box: box });
   };
 
-  onSubmit = () => {
+  onInputChange = (event) => {
+    this.setState({ input: event.target.value });
+  };
+
+  onButtonSubmit = () => {
     this.setState({ imageUrl: this.state.input });
-    app.models
-      .predict(Clarifai.FACE_DETECT_MODEL, this.state.input)
+    fetch("https://shrouded-cove-10932.herokuapp.com/imageurl", {
+      method: "post",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        input: this.state.input,
+      }),
+    })
+      .then((response) => response.json())
       .then((response) => {
         if (response) {
-          fetch("https://agface-api.herokuapp.com//image", {
+          fetch("https://shrouded-cove-10932.herokuapp.com/image", {
             method: "put",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -96,7 +97,8 @@ class App extends React.Component {
             .then((response) => response.json())
             .then((count) => {
               this.setState(Object.assign(this.state.user, { entries: count }));
-            });
+            })
+            .catch(console.log);
         }
         this.displayFaceBox(this.calculateFaceLocation(response));
       })
@@ -113,14 +115,15 @@ class App extends React.Component {
   };
 
   render() {
+    const { isSignedIn, imageUrl, route, box } = this.state;
     return (
       <div className="App">
-        <Particles className="particles" params={particle} />
+        <Particles className="particles" params={particlesOptions} />
         <Navigation
-          isSignedIn={this.state.isSignedIn}
+          isSignedIn={isSignedIn}
           onRouteChange={this.onRouteChange}
         />
-        {this.state.route === "home" ? (
+        {route === "home" ? (
           <div>
             <Rank
               name={this.state.user.name}
@@ -128,15 +131,12 @@ class App extends React.Component {
             />
             <ImageLinkForm
               onInputChange={this.onInputChange}
-              onSubmit={this.onSubmit}
+              onButtonSubmit={this.onButtonSubmit}
             />
-            <FaceRecognition
-              box={this.state.box}
-              imageUrl={this.state.imageUrl}
-            />
+            <FaceRecognition box={box} imageUrl={imageUrl} />
           </div>
-        ) : this.state.route === "signin" ? (
-          <SingIn loadUser={this.loadUser} onRouteChange={this.onRouteChange} />
+        ) : route === "signin" ? (
+          <Signin loadUser={this.loadUser} onRouteChange={this.onRouteChange} />
         ) : (
           <Register
             loadUser={this.loadUser}

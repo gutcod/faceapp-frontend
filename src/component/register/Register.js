@@ -21,7 +21,7 @@ class Register extends React.Component {
     this.setState({ password: event.target.value });
   };
   onSubmitSignIn = () => {
-    fetch("https://agface-api.herokuapp.com//register", {
+    fetch("https://shrouded-cove-10932.herokuapp.com/register", {
       method: "post",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -65,7 +65,7 @@ class Register extends React.Component {
                 <input
                   className="pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100"
                   type="email"
-                  name="email-address"
+                  name="email"
                   id="email-address"
                   onChange={this.onEmailChange}
                 />
@@ -88,7 +88,7 @@ class Register extends React.Component {
                 onClick={this.onSubmitSignIn}
                 className="b ph3 pv2 input-reset ba b--black bg-transparent grow pointer f6 dib"
                 type="submit"
-                value="Register"
+                value="register"
               />
             </div>
           </div>
